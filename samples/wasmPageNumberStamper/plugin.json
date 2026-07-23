@@ -1,0 +1,17 @@
+{
+  "id": "wasm-page-number-stamper",
+  "name": "ページ番号スタンパー",
+  "version": "1.0.0",
+  "description": "各ページにページ番号のテキストボックスを配置します（再実行時は前回分を置き換えます）",
+  "runtime": "wasm",
+  "mainFile": "page_number_stamper.wasm",
+  "requiredHostApis": [
+    "ui.reportProgress",
+    "ui.log",
+    "ui.reportError",
+    "plan.setConfirmationMode",
+    "plan.addAnnotation",
+    "plan.removeAnnotation",
+    "doc.getAnnotationIdsByTag"
+  ]
+}

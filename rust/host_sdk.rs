@@ -4,14 +4,15 @@
 // 共通の実装となる部分（`host_system`モジュール名前空間からのホストAPIインポート宣言、
 // NUL終端UTF-8ポインタ⇔Rust文字列の変換、ホストが文字列を書き込むための`alloc`
 // エクスポート）をまとめたモジュール。個々のプラグイン本体（例:
-// `samplePlugins/wasmPageNumberStamper/page_number_stamper.rs`）は、このファイルを
-// 相対パスで`mod`宣言して`use`し、ここで定義する安全なラッパー関数だけを呼び出せばよい:
+// `samples/wasmPageNumberStamper/page_number_stamper.rs`や、新規開発時は`main.rs`）は、
+// このファイルを相対パスで`mod`宣言して`use`し、ここで定義する安全なラッパー関数だけを
+// 呼び出せばよい:
 //
-//   #[path = "../../pluginSdk/rust/host_sdk.rs"]
+//   #[path = "../../rust/host_sdk.rs"]
 //   mod host_sdk;
 //   use host_sdk::*;
 //
-// 呼び出し規約の詳細は`samplePlugins/pluginStoreRepoTemplate/docs/PLUGIN_DEVELOPMENT_GUIDE.md`
+// 呼び出し規約の詳細はRD-PluginStockリポジトリの`docs/PLUGIN_DEVELOPMENT_GUIDE.md`
 // を参照（文字列はすべてNUL終端UTF-8バイト列へのポインタとしてやり取りする）
 
 use std::alloc::{alloc as std_alloc, Layout};
@@ -53,6 +54,8 @@ extern "C" {
 
     // ---- 実行時API（manifest.requiredHostApisで要求したもののみ実データを返す） ----
     fn ui_report_progress(percent: i32);
+    fn ui_log(message: *const u8);
+    fn ui_report_error(message: *const u8);
     fn plan_set_confirmation_mode(mode: *const u8);
     fn plan_add_annotation(
         file_index: i32,
@@ -214,6 +217,19 @@ pub fn add_file_field(field_id: &str, label: &str, optional: bool) {
 /// 実行進捗（0〜100）を報告する
 pub fn report_progress(percent: i32) {
     unsafe { ui_report_progress(percent) };
+}
+
+/// ログを1行出力する（プラグインタブに蓄積表示される。複数回呼ぶと行が積み上がる）
+pub fn log(message: &str) {
+    let m = to_c_string(message);
+    unsafe { ui_log(m.as_ptr() as *const u8) };
+}
+
+/// プラグイン自身が判断した実行失敗を報告する。WASM呼び出し自体は正常に戻っても、
+/// これを呼ぶとホスト側はラン全体を失敗（エラー）扱いにする
+pub fn report_error(message: &str) {
+    let m = to_c_string(message);
+    unsafe { ui_report_error(m.as_ptr() as *const u8) };
 }
 
 /// 以降の`plan.*`呼び出しに適用する確認モードを設定する（`"once"`または`"perItem"`）

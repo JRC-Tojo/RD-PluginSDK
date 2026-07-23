@@ -1,0 +1,18 @@
+{
+  "id": "wasm-document-diff",
+  "name": "文書差分検出",
+  "version": "1.0.0",
+  "description": "旧版・新版の2文書を比較し、テキストが異なるページに新版側で印を付けます（再実行時は前回分を置き換えます）",
+  "runtime": "wasm",
+  "mainFile": "document_diff.wasm",
+  "requiredHostApis": [
+    "ui.reportProgress",
+    "ui.log",
+    "ui.reportError",
+    "plan.setConfirmationMode",
+    "plan.addAnnotation",
+    "plan.removeAnnotation",
+    "doc.getAnnotationIdsByTag",
+    "doc.getPageTextBlocks"
+  ]
+}
